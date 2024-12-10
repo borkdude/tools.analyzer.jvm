@@ -20,7 +20,8 @@
              [env :as env :refer [*env*]]
              [passes :refer [schedule]]]
 
-            [clojure.tools.analyzer.jvm.utils :refer :all :as u :exclude [box specials]]
+            [clojure.tools.analyzer.jvm.utils :as utils
+             :refer :all :as utils :exclude [box specials]]
 
             [clojure.tools.analyzer.passes
              [source-info :refer [source-info]]
@@ -126,17 +127,19 @@
     (if-let [target (and sym-ns
                          (not (resolve-ns (symbol sym-ns) env))
                          (maybe-class-literal sym-ns))]          ;; Class/field
-      (let [opname (name form)]
+      (let [opname (name form)
+            opname-sym (symbol opname)]
         (if (and (= (count opname) 1)
                  (Character/isDigit (first opname)))
           form ;; Array/<n>
-          (if (.startsWith opname ".")
-            `(fn
-               ([x#] (~form x#))
-               ;; TODO: analyze method and return properly expanded fn
-               )
-            (with-meta (list '. target (symbol (str "-" opname))) ;; transform to (. Class -field)
-              (meta form)))))
+          (let [members (utils/members target)]
+            (if (some #(= opname-sym (:name %)) members)
+              `(fn
+                 ([x#] (~form x#))
+                 ;; TODO: analyze method and return properly expanded fn
+                 )
+              (with-meta (list '. target (symbol (str "-" opname))) ;; transform to (. Class -field)
+                (meta form))))))
       form)))
 
 (defn desugar-host-expr [form env]
@@ -645,5 +648,8 @@
                              (String/.length x)) (empty-env))))
 
   (macroexpand-1 'String/.length)
+  (macroexpand-1 'Integer/parseInt)
+  (clojure.core/macroexpand-1 'Integer/parseInt)
+  (macroexpand-1 'Long/parseLong)
   (eval (macroexpand-1 '(fn [x]
                           (String/.length x)))))

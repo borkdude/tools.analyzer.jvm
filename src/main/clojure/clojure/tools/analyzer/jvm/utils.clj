@@ -312,6 +312,10 @@
   (filter #(= argc (count (:parameter-types %)))
           (filter :return-type (instance-members class method))))
 
+(comment
+  (members Integer)
+  )
+
 (defn static-field [class f]
   (when-let [statics (static-members class f)]
     (when-let [[member] (filter (every-pred (comp nil? seq :parameter-types)
