@@ -133,7 +133,8 @@
                  (Character/isDigit (first opname)))
           form ;; Array/<n>
           (let [members (u/members target)]
-            (if (some #(= opname-sym (:name %)) members)
+            (if (some #(and (= opname-sym (:name %))
+                            (:parameter-types %)) members)
               `(fn
                  ([x#] (~form x#))
                  ;; TODO: analyze method and return properly expanded fn
@@ -649,6 +650,7 @@
 
   (macroexpand-1 'String/.length)
   (macroexpand-1 'Integer/parseInt)
+  (macroexpand-1 'Integer/SIZE)
   (clojure.core/macroexpand-1 'Integer/parseInt)
   (macroexpand-1 'Long/parseLong)
   (eval (macroexpand-1 '(fn [x]
