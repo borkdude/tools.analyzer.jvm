@@ -21,7 +21,7 @@
              [passes :refer [schedule]]]
 
             [clojure.tools.analyzer.jvm.utils :as utils
-             :refer :all :as utils :exclude [box specials]]
+             :refer :all :as u :exclude [box specials]]
 
             [clojure.tools.analyzer.passes
              [source-info :refer [source-info]]
@@ -132,7 +132,7 @@
         (if (and (= (count opname) 1)
                  (Character/isDigit (first opname)))
           form ;; Array/<n>
-          (let [members (utils/members target)]
+          (let [members (u/members target)]
             (if (some #(= opname-sym (:name %)) members)
               `(fn
                  ([x#] (~form x#))
